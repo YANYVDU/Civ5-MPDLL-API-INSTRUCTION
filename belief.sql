@@ -292,6 +292,19 @@ CREATE TABLE "Belief_ImprovementYieldChanges" (
 	FOREIGN KEY("YieldType") REFERENCES "Yields"("Type")
 );
 
+--信条为特定改良设施提供额外产出（改良设施邻接改良设施时触发，OtherImprovementType为邻接的改良类型）
+CREATE TABLE "Belief_AdjacentImprovementYieldChanges" (
+	"BeliefType"	text,--信条Type
+	"ImprovementType"	text,--改良设施Type
+	"OtherImprovementType"	text,--邻接的改良设施Type
+	"YieldType"	text,--产出类型
+	"Yield"	integer DEFAULT 0,--产出变化值
+	FOREIGN KEY("BeliefType") REFERENCES "Beliefs"("Type"),
+	FOREIGN KEY("ImprovementType") REFERENCES "Improvements"("Type"),
+	FOREIGN KEY("OtherImprovementType") REFERENCES "Improvements"("Type"),
+	FOREIGN KEY("YieldType") REFERENCES "Yields"("Type")
+);
+
 --信条对城市中湖泊地块的产出加成
 CREATE TABLE "Belief_LakePlotYieldChanges" (
 	"BeliefType"	text,

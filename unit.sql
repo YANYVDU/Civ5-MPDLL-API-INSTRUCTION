@@ -337,3 +337,25 @@ CREATE TABLE "Unit_YieldFromKills" (
 	FOREIGN KEY("UnitType") REFERENCES "Units"("Type"),
 	FOREIGN KEY("YieldType") REFERENCES "Yields"("Type")
 );
+
+-- ============================================================
+-- 以下是 Builds 相关子表（Build操作定义，需引用Builds表）
+-- ============================================================
+
+--Build操作可改变地块地形（如填海造地/开凿运河）
+CREATE TABLE "Build_TerrainChange" (
+	"BuildType"	text REFERENCES Builds(Type),--Build操作Type
+	"TerrainType"	text REFERENCES Terrains(Type)--目标地形Type
+);
+
+--Build操作允许的地形白名单（有记录时仅限表内地形可执行该Build，无记录时不受限制）
+CREATE TABLE "Build_ValidTerrains" (
+	"BuildType"	text REFERENCES Builds(Type),--Build操作Type
+	"TerrainType"	text REFERENCES Terrains(Type)--允许执行的地形Type
+);
+
+--Build操作需要邻接指定地形（至少一个邻接格满足即可）
+CREATE TABLE "Build_AdjacentTerrainRequired" (
+	"BuildType"	text REFERENCES Builds(Type),--Build操作Type
+	"TerrainType"	text REFERENCES Terrains(Type)--需要邻接的地形Type
+);

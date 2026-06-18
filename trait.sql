@@ -46,6 +46,10 @@ CREATE TABLE "Traits" (
 	"ExtraEmbarkMoves"	integer DEFAULT 0,--额外海运移动力
 	"NaturalWonderFirstFinderGold"	integer DEFAULT 0,--首先发现自然奇观获得的金币值（西班牙500）
 	"NaturalWonderSubsequentFinderGold"	integer DEFAULT 0,--后续发现自然奇观获得的金币值（西班牙100）
+	"NaturalWonderFirstFinderTech"	int DEFAULT 0,--首先发现自然奇观时获得免费科技数量
+	"NaturalWonderFirstFinderPolicies"	int DEFAULT 0,--首先发现自然奇观时获得免费政策数量
+	"NaturalWonderSubsequentFinderPolicies"	int DEFAULT 0,--后续发现自然奇观时获得免费政策数量
+	"NaturalWonderSubsequentFinderTech"	int DEFAULT 0,--后续发现自然奇观时获得免费科技数量
 	"NaturalWonderYieldModifier"	integer DEFAULT 0,--自然奇观产出修正百分比（西班牙100）
 	"NaturalWonderHappinessModifier"	integer DEFAULT 0,--自然奇观快乐值修正百分比
 	"NearbyImprovementCombatBonus"	integer DEFAULT 0,--临近指定改良设施时战斗力加成百分比
@@ -360,6 +364,19 @@ CREATE TABLE "Trait_ImprovementYieldChanges" (
 	"Yield"	integer,--产出变化值
 	FOREIGN KEY("TraitType") REFERENCES "Traits"("Type"),
 	FOREIGN KEY("ImprovementType") REFERENCES "Improvements"("Type"),
+	FOREIGN KEY("YieldType") REFERENCES "Yields"("Type")
+);
+
+--特质为特定改良设施提供额外产出（改良设施邻接改良设施时触发，OtherImprovementType为邻接的改良类型）
+CREATE TABLE "Trait_AdjacentImprovementYieldChanges" (
+	"TraitType"	text,--特质Type
+	"ImprovementType"	text,--改良设施Type
+	"OtherImprovementType"	text,--邻接的改良设施Type
+	"YieldType"	text,--产出类型
+	"Yield"	integer DEFAULT 0,--产出变化值
+	FOREIGN KEY("TraitType") REFERENCES "Traits"("Type"),
+	FOREIGN KEY("ImprovementType") REFERENCES "Improvements"("Type"),
+	FOREIGN KEY("OtherImprovementType") REFERENCES "Improvements"("Type"),
 	FOREIGN KEY("YieldType") REFERENCES "Yields"("Type")
 );
 

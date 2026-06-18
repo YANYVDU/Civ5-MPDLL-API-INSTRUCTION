@@ -217,6 +217,11 @@ CREATE TABLE "Policies" (
 	"WarCasualtiesModifier"	int NOT NULL DEFAULT 0,--战争伤亡点数变化百分比
 	"ResourceCityConnectionTradeRouteGoldModifier"	integer NOT NULL DEFAULT 0,--每种资源带来的城市连接金币加成修正
 	"ResourceUnhappinessModifier"	integer NOT NULL DEFAULT 0,--资源数量对不满值影响的修正
+	"InstantTourismBombWhenFirstConquerMajorCapital"	integer NOT NULL DEFAULT 0,--首次征服主要文明首都时获得瞬间旅游业绩爆发值（与Traits同名列可叠加）
+	"NaturalWonderFirstFinderTech"	integer NOT NULL DEFAULT 0,--首先发现自然奇观时获得免费科技数量
+	"NaturalWonderFirstFinderPolicies"	integer NOT NULL DEFAULT 0,--首先发现自然奇观时获得免费政策数量
+	"NaturalWonderSubsequentFinderPolicies"	integer NOT NULL DEFAULT 0,--后续发现自然奇观时获得免费政策数量
+	"NaturalWonderSubsequentFinderTech"	integer NOT NULL DEFAULT 0,--后续发现自然奇观时获得免费科技数量
 	FOREIGN KEY("Description") REFERENCES "Language_en_US"("Tag"),
 	FOREIGN KEY("Civilopedia") REFERENCES "Language_en_US"("Tag"),
 	FOREIGN KEY("Strategy") REFERENCES "Language_en_US"("Tag"),
@@ -609,6 +614,19 @@ CREATE TABLE "Policy_ImprovementYieldChanges" (
 	"Yield"	integer,--产出变化值
 	FOREIGN KEY("PolicyType") REFERENCES "Policies"("Type"),
 	FOREIGN KEY("ImprovementType") REFERENCES "Improvements"("Type"),
+	FOREIGN KEY("YieldType") REFERENCES "Yields"("Type")
+);
+
+--政策为特定改良设施提供额外产出（改良设施邻接改良设施时触发，OtherImprovementType为邻接的改良类型）
+CREATE TABLE "Policy_AdjacentImprovementYieldChanges" (
+	"PolicyType"	text,--政策Type
+	"ImprovementType"	text,--改良设施Type
+	"OtherImprovementType"	text,--邻接的改良设施Type
+	"YieldType"	text,--产出类型
+	"Yield"	integer DEFAULT 0,--产出变化值
+	FOREIGN KEY("PolicyType") REFERENCES "Policies"("Type"),
+	FOREIGN KEY("ImprovementType") REFERENCES "Improvements"("Type"),
+	FOREIGN KEY("OtherImprovementType") REFERENCES "Improvements"("Type"),
 	FOREIGN KEY("YieldType") REFERENCES "Yields"("Type")
 );
 

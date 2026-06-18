@@ -191,6 +191,7 @@ CREATE TABLE "Buildings" (
 	"MoveAfterCreated"	INTEGER DEFAULT 0,--买单位移动力不会清零
 	"CorruptionScoreChange"	integer NOT NULL DEFAULT 0,--腐败分数变更（可以变成0级城市）
 	"CorruptionLevelChange"	integer NOT NULL DEFAULT 0,--腐败等级变更（不会变为0级城）
+	"CorruptionScoreGlobalChange"	integer NOT NULL DEFAULT 0,--全国腐败分数变化值（全局叠加，区别于CorruptionScoreChange的本地效果）
 	"SiegeKillCitizensModifier"	integer NOT NULL DEFAULT 0,--瘟疫杀人变更？
 	"EnableCityScaleGrowth"	text,--城市规模污染免疫
 	"EnableAllCityScaleGrowth"	boolean NOT NULL DEFAULT 0,--城市人口增长免疫污染影响，强权德商馆
@@ -1111,4 +1112,28 @@ CREATE TABLE "Building_YieldModifiersChangesPerEra" (
 	"BuildingType"	text NOT NULL REFERENCES Buildings(Type),--建筑Type
 	"YieldType"	text NOT NULL REFERENCES Yields(Type),--产出类型
 	"Yield"	integer DEFAULT 0--每时代产出修正百分比增加值
+);
+--建筑为特定改良设施提供额外产出（改良设施邻接改良设施时触发，OtherImprovementType为邻接的改良类型，效果仅本城）
+CREATE TABLE "Building_AdjacentImprovementYieldChanges" (
+	"BuildingType"	text NOT NULL REFERENCES Buildings(Type),--建筑Type
+	"ImprovementType"	text REFERENCES Improvements(Type),--改良设施Type
+	"OtherImprovementType"	text REFERENCES Improvements(Type),--邻接的改良设施Type
+	"YieldType"	text REFERENCES Yields(Type),--产出类型
+	"Yield"	integer DEFAULT 0,--产出变化值
+	FOREIGN KEY("BuildingType") REFERENCES "Buildings"("Type"),
+	FOREIGN KEY("ImprovementType") REFERENCES "Improvements"("Type"),
+	FOREIGN KEY("OtherImprovementType") REFERENCES "Improvements"("Type"),
+	FOREIGN KEY("YieldType") REFERENCES "Yields"("Type")
+);
+--建筑为特定改良设施提供额外产出（改良设施邻接改良设施时触发，效果全国叠加）
+CREATE TABLE "Building_AdjacentImprovementYieldChangesGlobal" (
+	"BuildingType"	text NOT NULL REFERENCES Buildings(Type),--建筑Type
+	"ImprovementType"	text REFERENCES Improvements(Type),--改良设施Type
+	"OtherImprovementType"	text REFERENCES Improvements(Type),--邻接的改良设施Type
+	"YieldType"	text REFERENCES Yields(Type),--产出类型
+	"Yield"	integer DEFAULT 0,--产出变化值
+	FOREIGN KEY("BuildingType") REFERENCES "Buildings"("Type"),
+	FOREIGN KEY("ImprovementType") REFERENCES "Improvements"("Type"),
+	FOREIGN KEY("OtherImprovementType") REFERENCES "Improvements"("Type"),
+	FOREIGN KEY("YieldType") REFERENCES "Yields"("Type")
 );
