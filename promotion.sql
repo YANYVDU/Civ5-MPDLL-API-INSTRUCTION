@@ -63,7 +63,7 @@ CREATE TABLE "UnitPromotions" (
 	"IgnoreGreatGeneralBenefit"	boolean DEFAULT 0,--无视大将军/陆军统帅的光环加成
 	"IgnoreZOC"	boolean DEFAULT 0,--无视敌方单位的区域控制（ZOC）
 	"HasPostCombatPromotions"	boolean DEFAULT 0,--在完成首次作战后，获得一项随机的特殊晋升
-	"PostCombatPromotionsExclusive"	boolean DEFAULT 0,--战后随机晋升唯一性：如果设为true，同一时间只有一个玩家可以选择此战后晋升
+	"PostCombatPromotionsExclusive"	boolean DEFAULT 0,--战后随机晋升排除规则：0=排除当前单位已有晋升，1=排除该玩家任意单位已拥有的晋升
 	"RangedAttackModifier"	integer DEFAULT 0,--远程攻击力加成百分比
 	"InterceptionCombatModifier"	integer DEFAULT 0,--拦截时战斗力加成百分比
 	"InterceptionDefenseDamageModifier"	integer DEFAULT 0,--遭受拦截时的损伤变化比例
