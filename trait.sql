@@ -26,6 +26,7 @@ CREATE TABLE "Traits" (
 	"NavalUnitMaintenanceModifier"	integer DEFAULT 0,--海军单位维护费修正百分比（土耳其-66）
 	"CapitalBuildingModifier"	integer DEFAULT 0,--在其他城市建造首都已拥有的建筑时产能加成百分比（罗马25）
 	"PlotBuyCostModifier"	integer DEFAULT 0,--购买地块金币费用修正百分比（美国-50）
+	"NewCityAutomaticReligion"	BOOLEAN DEFAULT 0,--新城市自动信仰自身创建的宗教（即使不是神系状态）
 	"PlotCultureCostModifier"	integer DEFAULT 0,--文化扩地所需文化值修正百分比（俄罗斯-25）
 	"CultureFromKills"	integer DEFAULT 0,--击杀单位获得对方战斗力×此百分比的文化值（阿兹特克100）
 	"FaithFromKills"	integer DEFAULT 0,--击杀单位获得对方战斗力×此百分比的信仰值
@@ -619,4 +620,10 @@ CREATE TABLE "Trait_YieldModifiers" (
 	"Yield"	integer,--每个相邻地块的百分比修正值
 	FOREIGN KEY("TraitType") REFERENCES "Traits"("Type"),
 	FOREIGN KEY("YieldType") REFERENCES "Yields"("Type")
+);
+--特质为特定Build提供建造时间修正（绝对值，非百分比；修正后的最终建造时间不低于100）
+CREATE TABLE "Trait_BuildCostChange" (
+	"TraitType"	text REFERENCES Traits(Type),--特质Type
+	"BuildType"	text REFERENCES Builds(Type),--Build类型
+	"Change"	int DEFAULT 0--建造时间修正值（正数=增加耗时，负数=减少耗时，如填-300则建造时间减少300，填200则建造时间增加200）
 );

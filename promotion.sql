@@ -196,6 +196,12 @@ CREATE TABLE "UnitPromotions" (
 	"NumSpyStayAttackMod"	integer DEFAULT 0,--与有我方间谍驻扎的文明的单位作战时攻击加成
 	"NumSpyStayDefenseMod"	integer DEFAULT 0,--与有我方间谍驻扎的文明的单位作战时防御加成
 	"MeleeAttackModifier"	integer DEFAULT 0,--近战攻击力加成百分比
+	"DifferentReligionAttackModifier"	integer DEFAULT 0,--对不同主流宗教文明的单位攻击加成
+	"DifferentReligionDefenseModifier"	integer DEFAULT 0,--对不同主流宗教文明的单位防御加成
+	"GoldenAgeTurnAttackModifier"	integer DEFAULT 0,--根据黄金时代已持续回合数获得攻击加成比例（100=每1黄金时代回合数+1%战斗力）
+	"GoldenAgeTurnDefenseModifier"	integer DEFAULT 0,--根据黄金时代已持续回合数获得防御加成比例（100=每1黄金时代回合数+1%战斗力）
+	"FollowerCountCombatModifier"	integer DEFAULT 0,--根据本教全图信众数量获得攻击/防御加成比例（100=每1信众+1%战斗力）
+	"FollowingCityCountCombatModifier"	integer DEFAULT 0,--根据本教全图信教城市数量获得攻击/防御加成比例（100=每1城市+1%战斗力）
 	"MeleeDefenseMod"	integer DEFAULT 0,--近战防御力加成百分比
 	"NumAttacksMadeThisTurnAttackMod"	integer DEFAULT 0,--本回合已进行的攻击次数对攻击力的加成
 	"AttackFullyHealedMod"	integer DEFAULT 0,--对满血敌方单位的攻击加成

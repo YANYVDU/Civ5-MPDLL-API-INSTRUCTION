@@ -213,7 +213,9 @@ CREATE TABLE "Policies" (
 	"GreatScientistBeakerPolicyModifier"	integer DEFAULT 0,--大科学家消耗时产出烧瓶的变化百分比
 	"ProductionBeakerMod"	integer DEFAULT 0,--大工程师秒奇观时产出产能的变化百分比
 	"CorruptionScoreModifier"	integer NOT NULL DEFAULT 0,--腐败分数变化百分比
-	"CorruptionLevelReduceByOne"	boolean NOT NULL DEFAULT 0,--腐败等级降低一级
+	"CorruptionLevelReduceByOne"	boolean NOT NULL DEFAULT 0,--腐败等级降低一�
+	"LocalHappinessCorruptionScoreMod"	integer NOT NULL DEFAULT 0,--每点城市本地快乐转化为腐败点数的比例（写-100=每点本地快乐-1腐败，正值增加腐败；实际效果 = 本地快乐 × 此值 / 100）
+	"GoldenAgeCorruptionScoreReduction"	integer NOT NULL DEFAULT 0,--黄金时代内所有城市腐败点数下降数值�
 	"WarCasualtiesModifier"	int NOT NULL DEFAULT 0,--战争伤亡点数变化百分比
 	"ResourceCityConnectionTradeRouteGoldModifier"	integer NOT NULL DEFAULT 0,--每种资源带来的城市连接金币加成修正
 	"ResourceUnhappinessModifier"	integer NOT NULL DEFAULT 0,--资源数量对不满值影响的修正

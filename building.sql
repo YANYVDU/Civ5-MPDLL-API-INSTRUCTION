@@ -173,6 +173,8 @@ CREATE TABLE "Buildings" (
 	"RangedStrikeModifier"	INTEGER DEFAULT 0,--城市攻击加成
 	"ResetDamageValue"	INTEGER DEFAULT 0,--城防固伤
 	"ReduceDamageValue"	INTEGER DEFAULT 0,--城市固免
+	"FollowerCountDamageModifier"	INTEGER DEFAULT 0,--城市根据本城宗教信众数量获得固免/固伤的比例（100=每1信众+1固免/固伤，非圣城无效果）
+	"FollowingCityCountDamageModifier"	INTEGER DEFAULT 0,--城市根据本城宗教信教城市数量获得固免/固伤的比例（100=每1城市+1固免/固伤，非圣城无效果）
 	"GlobalCityStrengthMod"	INTEGER DEFAULT 0,--全国城市战斗力加成，强权法西尔盖比城堡
 	"GlobalRangedStrikeModifier"	INTEGER DEFAULT 0,--全国城市远程攻击加成，法西尔盖比城堡
 	"NukeInterceptionChance"	INTEGER DEFAULT 0,--核弹拦截概率

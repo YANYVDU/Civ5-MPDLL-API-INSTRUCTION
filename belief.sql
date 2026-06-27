@@ -72,6 +72,9 @@ CREATE TABLE "Beliefs" (
 	"FreePromotionForProphet"	text DEFAULT NULL,--大先知免费获得的晋升（引用UnitPromotions表）
 	"FounderFreePromotion"	text DEFAULT NULL,--创立者信条给予创立文明所有单位的免费晋升
 	"FollowingCityFreePromotion"	text DEFAULT NULL,--追随者信条给予信仰城市单位的免费晋升
+	"CityCorruptionScoreChange"	integer DEFAULT 0,--信仰该宗教的城市腐败分数变化值（正值增加腐败，负值减少腐败）
+	"FirstConversionCitiesPerGoldenAge"	integer DEFAULT 0,--每X座城市首次皈依该宗教时创立者开启一次黄金时代（X为此阈值，与FirstConversionCitiesPerPop共用计数器）
+	"FirstConversionCitiesPerPop"	integer DEFAULT 0,--每X座城市首次皈依该宗教时圣城增长1人口（X为此值）
 	FOREIGN KEY("ObsoleteEra") REFERENCES "Eras"("Type"),
 	FOREIGN KEY("ResourceRevealed") REFERENCES "Resources"("Type"),
 	FOREIGN KEY("SpreadModifierDoublingTech") REFERENCES "Technologies"("Type"),
@@ -302,6 +305,24 @@ CREATE TABLE "Belief_AdjacentImprovementYieldChanges" (
 	FOREIGN KEY("BeliefType") REFERENCES "Beliefs"("Type"),
 	FOREIGN KEY("ImprovementType") REFERENCES "Improvements"("Type"),
 	FOREIGN KEY("OtherImprovementType") REFERENCES "Improvements"("Type"),
+	FOREIGN KEY("YieldType") REFERENCES "Yields"("Type")
+);
+
+--信仰该宗教的城市中每点本地快乐转化为产出的比例（Rate=100表示1快乐=1产出，Rate=50表示1快乐=0.5产出）
+CREATE TABLE "Belief_LocalHappinessYieldRate" (
+	"BeliefType"	text,
+	"YieldType"	text,
+	"Rate"	integer DEFAULT 0,--每点本地快乐转化为产出的比例（百分数）
+	FOREIGN KEY("BeliefType") REFERENCES "Beliefs"("Type"),
+
+--腐败分数转化为产出的比例(100=每100腐败+1产出，公式=腐败分×Rate/10000，0腐败城市产出为0)
+CREATE TABLE "Belief_CorruptionScoreYieldRate" (
+	"BeliefType"	text,
+	"YieldType"	text,
+	"Rate"	integer DEFAULT 0,
+	FOREIGN KEY("BeliefType") REFERENCES "Beliefs"("Type"),
+	FOREIGN KEY("YieldType") REFERENCES "Yields"("Type")
+);
 	FOREIGN KEY("YieldType") REFERENCES "Yields"("Type")
 );
 
@@ -569,6 +590,33 @@ CREATE TABLE "Belief_YieldPerXFollowers" (
 	"BeliefType"	text,
 	"YieldType"	text,
 	"PerXFollowers"	integer,--每多少个信徒
+	FOREIGN KEY("BeliefType") REFERENCES "Beliefs"("Type"),
+	FOREIGN KEY("YieldType") REFERENCES "Yields"("Type")
+);
+
+--商路通往本宗教圣城时，起源城市获得的额外产出
+CREATE TABLE "Belief_TradeRouteToHolyCityYield" (
+	"BeliefType"	text,
+	"YieldType"	text,
+	"Yield"	integer DEFAULT 0,
+	FOREIGN KEY("BeliefType") REFERENCES "Beliefs"("Type"),
+	FOREIGN KEY("YieldType") REFERENCES "Yields"("Type")
+);
+
+--商路通往本宗教圣城时，圣城（目的地）获得的额外产出
+CREATE TABLE "Belief_TradeRouteToHolyCityDestYield" (
+	"BeliefType"	text,
+	"YieldType"	text,
+	"Yield"	integer DEFAULT 0,
+	FOREIGN KEY("BeliefType") REFERENCES "Beliefs"("Type"),
+	FOREIGN KEY("YieldType") REFERENCES "Yields"("Type")
+);
+
+--商路通往同一主流宗教的城市时产出百分比修正（*100避免浮点，写100=+100%）
+CREATE TABLE "Belief_TradeRouteSameReligionYieldModifier" (
+	"BeliefType"	text,
+	"YieldType"	text,
+	"Modifier"	integer DEFAULT 0,
 	FOREIGN KEY("BeliefType") REFERENCES "Beliefs"("Type"),
 	FOREIGN KEY("YieldType") REFERENCES "Yields"("Type")
 );
