@@ -202,6 +202,20 @@ CREATE TABLE "UnitPromotions" (
 	"GoldenAgeTurnDefenseModifier"	integer DEFAULT 0,--根据黄金时代已持续回合数获得防御加成比例（100=每1黄金时代回合数+1%战斗力）
 	"FollowerCountCombatModifier"	integer DEFAULT 0,--根据本教全图信众数量获得攻击/防御加成比例（100=每1信众+1%战斗力）
 	"FollowingCityCountCombatModifier"	integer DEFAULT 0,--根据本教全图信教城市数量获得攻击/防御加成比例（100=每1城市+1%战斗力）
+	-- [[ 击杀永久属性累积：单位每次击杀敌方单位时，根据晋升提供的每击杀加成值逐次叠加永久属性。
+	-- 数值为百分位（centi-percent，即原值/100为实际每击杀加成量）。
+	-- 例如PerKillAttackMod=50表示每击杀2单位永久+1%（进攻/防御加成是百分比修正），
+	-- PerKillBaseCombatMod=50表示每击杀2单位永久+1基础力（基础力/远程力/最大生命/固伤/固免是直接加值）。
+	-- 公式（进攻/防御）：修正% = 击杀总数 × 晋升值 / 100（加到战斗力修正中）
+	-- 公式（基础力/远程力/HP/固伤/固免）：加值 = 击杀总数 × 晋升值 / 100（直接加到对应属性上）
+	-- 击杀总数可继承（单位升级后保留）。]]
+	"PerKillAttackMod"	integer DEFAULT 0,--每击杀永久进攻加成%（百分位，50=每2击杀+1%进攻修正）
+	"PerKillDefenseMod"	integer DEFAULT 0,--每击杀永久防御加成%（百分位，50=每2击杀+1%防御修正）
+	"PerKillBaseCombatMod"	integer DEFAULT 0,--每击杀永久基础近战战斗力直接加值（百分位，50=每2击杀+1力）
+	"PerKillRangedCombatMod"	integer DEFAULT 0,--每击杀永久基础远程战斗力直接加值（百分位，50=每2击杀+1远程力）
+	"PerKillMaxHpMod"	integer DEFAULT 0,--每击杀永久最大生命直接加值（百分位，50=每2击杀+1HP）
+	"PerKillInflictDamageChange"	integer DEFAULT 0,--每击杀造成伤害固定增加值（百分位，50=每2击杀+1固伤）
+	"PerKillDefenseDamageChange"	integer DEFAULT 0,--每击杀受到伤害固定减少值（百分位，50=每2击杀+1固免）
 	"MeleeDefenseMod"	integer DEFAULT 0,--近战防御力加成百分比
 	"NumAttacksMadeThisTurnAttackMod"	integer DEFAULT 0,--本回合已进行的攻击次数对攻击力的加成
 	"AttackFullyHealedMod"	integer DEFAULT 0,--对满血敌方单位的攻击加成

@@ -67,6 +67,7 @@ CREATE TABLE "Buildings" (
 	"HappinessPerCity"	integer DEFAULT 0,--每一城市+x快乐
 	"HappinessPerXPolicies"	integer DEFAULT 0,--每x项采取政策+1笑脸
 	"CityCountUnhappinessMod"	integer DEFAULT 0,--城市数量导致的不满值修正百分比（负值减少不满，正值增加）
+	"CorruptionUnhappinessModifier"	integer DEFAULT 0,--全国腐败不满降低百分比（-50=腐败不满减半，最低降为0）
 	"NoOccupiedUnhappiness"	boolean DEFAULT 0,--消除被占领城市的额外不满
 	"WorkerSpeedModifier"	integer DEFAULT 0,--工人工作效率变化
 	"MilitaryProductionModifier"	integer DEFAULT 0,--军事生产提速比例
@@ -1138,4 +1139,21 @@ CREATE TABLE "Building_AdjacentImprovementYieldChangesGlobal" (
 	FOREIGN KEY("ImprovementType") REFERENCES "Improvements"("Type"),
 	FOREIGN KEY("OtherImprovementType") REFERENCES "Improvements"("Type"),
 	FOREIGN KEY("YieldType") REFERENCES "Yields"("Type")
+);
+
+--腐败等级表：定义各腐败等级的产生条件和效果
+--城市据距首都距离累加腐败分(CorruptionScore)，达到各等级ScoreLowerBound时升级
+--每级指定CityHallBuildingClass（市政厅）和PublicSecurityBuildingClass（公安建筑）
+CREATE TABLE "CorruptionLevels" (
+	"ID" integer primary key autoincrement not null,
+	"Type" text unique,--腐败等级标识（如CORRUPTION_LV1）
+	"IconString" text default '',--图标
+	"ScoreLowerBoundBase" integer NOT NULL DEFAULT 0,--基础腐败分下限
+	"MapWidthModifier" integer NOT NULL DEFAULT 0,--地图宽度修正(%)
+	"MapHeightModifier" integer NOT NULL DEFAULT 0,--地图高度修正(%)
+	"IsCapital" boolean NOT NULL DEFAULT 0,--首都专用
+	"IsPuppet" boolean NOT NULL DEFAULT 0,--傀儡城专用
+	"CityHallBuildingClass" text NULL,--市政厅建筑类
+	"PublicSecurityBuildingClass" text NULL,--公安建筑类
+	"CorruptionUnhappiness" integer NOT NULL DEFAULT 0--腐败产生的不满值(*100存储，如200=2不满)
 );

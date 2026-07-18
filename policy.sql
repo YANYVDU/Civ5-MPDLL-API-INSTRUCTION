@@ -47,6 +47,7 @@ CREATE TABLE "Policies" (
 	"ExtraHappinessPerCity"	integer DEFAULT 0,--每座城市额外快乐值
 	"UnhappinessMod"	integer DEFAULT 0,--全国不满值变化百分比
 	"CityCountUnhappinessMod"	integer DEFAULT 0,--城市数量导致的不满值变化百分比
+	"CorruptionUnhappinessModifier"	integer DEFAULT 0,--全国腐败不满降低百分比（-50=腐败不满减半，最低降为0）
 	"OccupiedPopulationUnhappinessMod"	integer DEFAULT 0,--占领城市人口不满值变化百分比
 	"CapitalUnhappinessMod"	integer DEFAULT 0,--首都人口不满值变化百分比
 	"FreeExperience"	integer DEFAULT 0,--单位免费初始经验值
@@ -186,6 +187,7 @@ CREATE TABLE "Policies" (
 	"HappinessPerReligionInCity"	integer DEFAULT 0,--城市中每存在一种宗教提供的额外快乐值
 	"HappinessPerPolicy"	integer DEFAULT 0,--每项已采用政策提供额外快乐值
 	"NoResistance"	boolean DEFAULT 0,--征服的城市无抵抗期
+	"TechBoostFromCityWonderBuildings"	boolean DEFAULT 0,--建造奇观时获得科研奖励（额度=中位数科技成本×中位数科技百分比）
 	"UpgradeAllTerritory"	boolean DEFAULT 0,--允许在境外升级单位
 	"CityCaptureHealGlobal"	integer DEFAULT 0,--占领城市时全国单位回复生命值
 	"ConquestCasualtiesModifier"	integer DEFAULT 0,--征服城市时人口保留率的修正百分比
