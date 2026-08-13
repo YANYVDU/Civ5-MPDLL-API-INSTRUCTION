@@ -314,6 +314,8 @@ CREATE TABLE "Belief_LocalHappinessYieldRate" (
 	"YieldType"	text,
 	"Rate"	integer DEFAULT 0,--每点本地快乐转化为产出的比例（百分数）
 	FOREIGN KEY("BeliefType") REFERENCES "Beliefs"("Type"),
+	FOREIGN KEY("YieldType") REFERENCES "Yields"("Type")
+);
 
 --腐败分数转化为产出的比例(100=每100腐败+1产出，公式=腐败分×Rate/10000，0腐败城市产出为0)
 CREATE TABLE "Belief_CorruptionScoreYieldRate" (
@@ -321,8 +323,6 @@ CREATE TABLE "Belief_CorruptionScoreYieldRate" (
 	"YieldType"	text,
 	"Rate"	integer DEFAULT 0,
 	FOREIGN KEY("BeliefType") REFERENCES "Beliefs"("Type"),
-	FOREIGN KEY("YieldType") REFERENCES "Yields"("Type")
-);
 	FOREIGN KEY("YieldType") REFERENCES "Yields"("Type")
 );
 

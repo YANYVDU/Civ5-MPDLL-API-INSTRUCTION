@@ -1157,3 +1157,63 @@ CREATE TABLE "CorruptionLevels" (
 	"PublicSecurityBuildingClass" text NULL,--公安建筑类
 	"CorruptionUnhappiness" integer NOT NULL DEFAULT 0--腐败产生的不满值(*100存储，如200=2不满)
 );
+
+--城邦初始建筑表：为指定城邦的第一座城（首都）提供初始建筑，开局建城时同样生效（类似文明的Civilization_FreeBuildingClasses，但作用于城邦）
+CREATE TABLE "MinorCivilization_FreeBuildingClasses" (
+	"MinorCivType"	text REFERENCES MinorCivilizations(Type),--城邦Type
+	"BuildingClassType"	text REFERENCES BuildingClasses(Type)--建筑类Type
+);
+
+--城邦UA效果主表CityStateUAEffects新增列（马六甲/巴拿马，属于城邦UA系统，表定义见 UNIQUE_CITYSTATES.sql）：
+--列值统一为百分比接口：每个X的加成百分比x100（每1->100，每2->50，每3->34），代码统一按 数量 x 列值 / 100 计算总加成
+CREATE TABLE "CityStateUAEffects_ExtraColumns_Doc" (
+	"FoodModifierPerLuxury"	integer,--马六甲：每个快乐奢侈品种类的城市余粮加成%（盟友每1=1%->100，朋友每2=0.5%->50）
+	"TradeRouteGoldModifierPerLuxuryType"	integer,--马六甲：每个快乐奢侈品种类的国际商路金加成%（每1=3%->300）
+	"TradeRouteGoldModifierPerDistance"	integer,--巴拿马：国际商路每格距离的金加成%（盟友每1=1%->100，朋友每2=0.5%->50）
+	"UnhappinessReductionPerCrossContinentRoute"	integer,--巴拿马：每条跨大陆国际商路的人口不满降低%（每1=3%->300，上限90%）
+	"HappinessPerGoldDonated"	integer,--迪拜：每捐赠满一个间隔额度获得的全局快乐数（盟友每1000现金=1，朋友每2000现金=1）
+	"GoldDonationInterval"	integer,--迪拜：捐赠现金累计间隔额度（盟友1000，朋友2000），快乐=总捐赠/间隔x每档快乐
+	"WonderProductionPerDonationHappiness"	integer,--迪拜（仅盟友）：每点捐赠快乐的全局奇观建造速率加成%（每1=1%->100，代码 快乐数x列值/100）
+	"IdeologyPressurePerDonationHappiness"	integer,--迪拜（仅盟友）：每点捐赠快乐对自身施加于其他意识形态舆论压力的加成%（每1=5%->5，代码 (100+快乐数x列值)x原压力/100）
+	"EnemyCityNoHealBesiegeCount"	integer--Valletta: enemy city besieged by >= this many of our combat units cannot heal (Ally 3 / Friend 6)
+);
+
+--城邦UA子表（科伦坡）：通往该城邦的国际商路每时代固定产出加成。
+--效果作用于"玩家通往该城邦的国际商路"，需玩家为该城邦盟友（用AllyEffectID）或朋友（用FriendEffectID）：
+--实际加成 = (当前世界时代+1) x YieldValue x 100（如盟友好YieldValue=15，远古时代+15、古典+30、中古+45...，存入商路原始值times100）
+CREATE TABLE "CityStateUAEffect_TradeRouteYieldPerEra" (
+	"EffectType"	text REFERENCES CityStateUAEffects(Type),--所属城邦UA效果Type（如EFFECT_CSUA_COLOMBO_ALLY/FRIEND）
+	"YieldType"	text REFERENCES Yields(Type),--产出类型（如YIELD_GOLD）
+	"YieldValue"	integer DEFAULT 0--每时代固定产出值（盟友15/朋友6）
+);
+
+--城邦UA子表（科伦坡）：盟友城市拥有通往该城邦的商路时，将信仰基础产出的一定百分比作为额外产出。
+--效果仅在"盟友效果"上配置（EFFECT_CSUA_COLOMBO_ALLY）。判定链：城市->遍历城邦->玩家为盟友/朋友且城邦UA含转化->城市有通往该城邦的商路->满足则加成。
+--算法参考Building_YieldFromOtherYield：额外产出 = (信仰基础产出 x Percent) / 100，原信仰产出不降低，奖励产出凭空产生（额外加成）。
+--接入点：CvCity::getBaseYieldRate 内 GetYieldRateFromFaithConversion(eYield)，输入产出用 getBasicYieldRateTimes100(YIELD_FAITH, false, true) 避免循环。
+CREATE TABLE "CityStateUAEffect_FaithToYieldConversion" (
+	"EffectType"	text REFERENCES CityStateUAEffects(Type),--所属城邦UA效果Type（仅盟友效果有转化）
+	"InYieldType"	text REFERENCES Yields(Type),--输入产出类型（YIELD_FAITH）
+	"OutYieldType"	text REFERENCES Yields(Type),--输出产出类型（YIELD_SCIENCE=科研 或 YIELD_TOURISM=魅力）
+	"Percent"	integer DEFAULT 0--信仰基础产出转化为该产出的百分比（20=20%科研，15=15%魅力）
+);
+--CityState UA subtable (Valletta): buying a specified building class grants all units of a domain XP.
+--Applies to the ally effect (EFFECT_CSUA_VALLETTA_ALLY). Chain: city purchase building succeeds -> match BuildingClassType -> iterate all units matching DomainType -> unit +XP.
+--Hook: CvCity::Purchase (after a gold/faith building purchase succeeds).
+CREATE TABLE "CityStateUAEffect_ReligiousBuildingXP" (
+	"EffectType"	text REFERENCES CityStateUAEffects(Type),--effect type (ally effect only)
+	"BuildingClassType"	text REFERENCES BuildingClasses(Type),--building class purchased (e.g. BUILDINGCLASS_TEMPLE)
+	"DomainType"	text REFERENCES Domains(Type),--unit domain that gains XP (single value required, e.g. DOMAIN_LAND)
+	"XP"	integer DEFAULT 0--XP granted to all units of that domain after purchase
+);
+
+--CityState UA subtable: born unit of a specified unit class grants a freely configured yield = YieldMod% of influence with the specified city-state (unit class and yield are both configurable).
+--Applies to the ally effect (EFFECT_CSUA_VALLETTA_ALLY). Chain: unit born -> match UnitClassType -> find the minor civ of MinorCivType -> yield = influence * YieldMod / 100, dispatched via CvPlayer::doInstantYield.
+--Hook: CvPlayer::createGreatGeneral.
+CREATE TABLE "CityStateUAEffect_UnitBornYield" (
+	"EffectType"	text REFERENCES CityStateUAEffects(Type),--effect type (ally effect only)
+	"MinorCivType"	text REFERENCES MinorCivilizations(Type),--minor civ whose influence is the source (e.g. MINOR_CIV_VALLETTA)
+	"UnitClassType"	text REFERENCES UnitClasses(Type),--born unit class (e.g. UNITCLASS_GREAT_GENERAL)
+	"YieldType"	text REFERENCES Yields(Type),--yield type, freely configurable (YIELD_GOLD / YIELD_CULTURE / YIELD_FAITH / YIELD_GOLDEN_AGE_POINTS / YIELD_SCIENCE / YIELD_TOURISM)
+	"YieldMod"	integer DEFAULT 0--granted yield = influence * YieldMod% (100 = full influence)
+);

@@ -215,9 +215,9 @@ CREATE TABLE "Policies" (
 	"GreatScientistBeakerPolicyModifier"	integer DEFAULT 0,--大科学家消耗时产出烧瓶的变化百分比
 	"ProductionBeakerMod"	integer DEFAULT 0,--大工程师秒奇观时产出产能的变化百分比
 	"CorruptionScoreModifier"	integer NOT NULL DEFAULT 0,--腐败分数变化百分比
-	"CorruptionLevelReduceByOne"	boolean NOT NULL DEFAULT 0,--腐败等级降低一�
+	"CorruptionLevelReduceByOne"	boolean NOT NULL DEFAULT 0,--腐败等级降低一级
 	"LocalHappinessCorruptionScoreMod"	integer NOT NULL DEFAULT 0,--每点城市本地快乐转化为腐败点数的比例（写-100=每点本地快乐-1腐败，正值增加腐败；实际效果 = 本地快乐 × 此值 / 100）
-	"GoldenAgeCorruptionScoreReduction"	integer NOT NULL DEFAULT 0,--黄金时代内所有城市腐败点数下降数值�
+	"GoldenAgeCorruptionScoreReduction"	integer NOT NULL DEFAULT 0,--黄金时代内所有城市腐败点数下降数值
 	"WarCasualtiesModifier"	int NOT NULL DEFAULT 0,--战争伤亡点数变化百分比
 	"ResourceCityConnectionTradeRouteGoldModifier"	integer NOT NULL DEFAULT 0,--每种资源带来的城市连接金币加成修正
 	"ResourceUnhappinessModifier"	integer NOT NULL DEFAULT 0,--资源数量对不满值影响的修正
@@ -376,7 +376,7 @@ CREATE TABLE "Policy_CapitalYieldModifiers" (
 CREATE TABLE "Policy_CapitalYieldPerPopChanges" (
 	"PolicyType"	text,--政策Type
 	"YieldType"	text,--产出类型
-	"Yield"	integer NOT NULL--每人口产出值
+	"Yield"	integer NOT NULL,--每人口产出值
 	FOREIGN KEY("PolicyType") REFERENCES "Policies"("Type"),
 	FOREIGN KEY("YieldType") REFERENCES "Yields"("Type")
 );
@@ -882,7 +882,27 @@ CREATE TABLE "Policy_YieldModifiers" (
 CREATE TABLE "Policy_YieldPerPopChanges" (
 	"PolicyType"	text,--政策Type
 	"YieldType"	text,--产出类型
-	"Yield"	integer NOT NULL--每人口产出值（乘以100后的整数，如50表示0.5）
+	"Yield"	integer NOT NULL,--每人口产出值（乘以100后的整数，如50表示0.5）
+	FOREIGN KEY("PolicyType") REFERENCES "Policies"("Type"),
+	FOREIGN KEY("YieldType") REFERENCES "Yields"("Type")
+);
+
+--政策按全球总人口提供产出（加到玩家总额，不给城市）
+--产出值 = 全国总人口 x YieldModifier / 100，YieldModifier 为百分比（如 33 表示总人口每 3 提供 1 产出）
+CREATE TABLE "Policy_YieldPerGlobalPop" (
+	"PolicyType"	text,--政策Type
+	"YieldType"	text,--产出类型
+	"YieldModifier"	integer DEFAULT 0,--产出百分比修正（总人口 x YieldModifier / 100）
+	FOREIGN KEY("PolicyType") REFERENCES "Policies"("Type"),
+	FOREIGN KEY("YieldType") REFERENCES "Yields"("Type")
+);
+
+--政策按信仰玩家领袖宗教的城市数量提供产出百分比修正（全世界统计，动态）
+--每个城市的该产出百分比修正 = Percent x 全世界信仰该宗教的城市数
+CREATE TABLE "Policy_YieldPercentPerCityFollowingReligion" (
+	"PolicyType"	text,--政策Type
+	"YieldType"	text,--产出类型（可配置任意产出）
+	"Percent"	integer DEFAULT 0,--每座信仰领袖宗教的城市提供的产出百分比修正
 	FOREIGN KEY("PolicyType") REFERENCES "Policies"("Type"),
 	FOREIGN KEY("YieldType") REFERENCES "Yields"("Type")
 );
