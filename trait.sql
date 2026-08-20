@@ -174,6 +174,8 @@ CREATE TABLE "Traits" (
 	"DamageChangePerCapturedHolyCity"	integer NOT NULL DEFAULT 0,--每占领一座圣城减少受到的伤害（SP新增）
 	"SiegeDamagePercentIfSameReligion"	integer NOT NULL DEFAULT 0,--攻击与己方国教相同的城市时，额外附加目标城市最大生命值N%的伤害（SP新增，值=直接附加的百分比点数）
 	"FaithPurchaseCombatUnitCostPercent"	integer NOT NULL DEFAULT 0,--信仰购买战斗单位的成本修正百分比（SP新增）
+	"NoSpecialistFood"	boolean DEFAULT 0,--专家不消耗食物（SP新增，与"专家食物消耗减半"政策互斥，特性优先）
+	"NoSpecialistUnhappiness"	boolean DEFAULT 0,--专家不产生任何不满（SP新增，与"专家不满减半"政策互斥，特性优先）
 	FOREIGN KEY("Description") REFERENCES "Language_en_US"("Tag"),
 	FOREIGN KEY("ShortDescription") REFERENCES "Language_en_US"("Tag"),
 	FOREIGN KEY("FreeUnit") REFERENCES "UnitClasses"("Type"),
@@ -335,6 +337,13 @@ CREATE TABLE "Trait_GoldenAgeYieldModifiers" (
 	"TraitType"	text REFERENCES Traits(Type),--特质Type
 	"YieldType"	text REFERENCES Yields(Type),--产出类型
 	"Yield"	integer DEFAULT 0--每个相邻地块的百分比修正值
+);
+
+--特质在黄金时代期间为地块提供绝对产出加值（仅在该格基础产出>=1时生效，SP新增）
+CREATE TABLE "Trait_GoldenAgeYieldChanges" (
+	"TraitType"	text REFERENCES Traits(Type),--特质Type
+	"YieldType"	text REFERENCES Yields(Type),--产出类型
+	"Yield"	integer DEFAULT 0--黄金时代期间每地块产出的绝对加值
 );
 
 --特质在消耗特定伟人时提供一次性产出
