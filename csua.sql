@@ -96,6 +96,9 @@ CREATE TABLE "CityStateUAEffects" (
 	"DiplomaticPrestigePerCity"	integer DEFAULT 0,--每座城市提供外交威望（100=0.1威望/城）
 	-- 维尔纽斯：每人口降低黄金时代阈值
 	"GoldenAgeThresholdPerPopulation"	integer DEFAULT 0,--每人口提供黄金时代阈值变化（负数为降低，-100=-1/每人口，先于百分比修正应用）
+	-- 温哥华：每座沿海城市提供全局快乐（100=+1快乐/沿海城市；盟友300/朋友100）
+	"CoastalCityHappiness"	integer DEFAULT 0,--每座沿海城市提供全局快乐（100=+1快乐/城，如盟友300=+3/城、朋友100=+1/城）
+	-- 注：温哥华"每点快乐提升全国食物/魅力产出%"由子表 CityStateUAEffect_HappinessYieldModifiers 定义（见文件末尾）
 	-- 注：以下数组/向量类效果由独立子表（CityStateUAEffect_*）定义，通过 EffectType 关联，见文件末尾
 );
 
@@ -135,6 +138,26 @@ CREATE TABLE "CityStateUAs" (
 -- CityStateUAEffect_PolicyYieldModifiers         每解锁一个社会政策提供产出百分比
 -- CityStateUAEffect_CapitalYieldModifierPerFollowingCity  每座信教城市首都提供产出百分比（100=+1%）
 -- CityStateUAEffect_HolyCityYieldModifierPerFollowingCity 每座信教城市使该宗教圣城提供产出百分比（100=+1%，如 YIELD_TOURISM/100=每城+1%魅力）
+-- CityStateUAEffect_HappinessYieldModifiers  每点玩家净快乐提供产出百分比（YieldMod基点=每点+1%，Cap=此值%上限；如 FOOD/TOURISM 各 100/50 = 每点快乐食物/魅力+1%、单独上限50%）
+
+-- ============================ 温哥华 CSUA 实现示例（V11）============================
+-- 温哥华设计：盟友每座沿海城市+3全局快乐；盟友每点快乐使全国食物+1%、魅力+1%（各自上限50%）
+-- 朋友每座沿海城市+1全局快乐（朋友无产出加成）
+-- CSUA.xml 效果定义：
+--   <Row><Type>EFFECT_CSUA_VANCOUVER_ALLY</Type><CoastalCityHappiness>300</CoastalCityHappiness></Row>
+--   <Row><Type>EFFECT_CSUA_VANCOUVER_FRIEND</Type><CoastalCityHappiness>100</CoastalCityHappiness></Row>
+--   <CityStateUAEffect_HappinessYieldModifiers>
+--        <Row><EffectType>EFFECT_CSUA_VANCOUVER_ALLY</EffectType><YieldType>YIELD_FOOD</YieldType><YieldMod>100</YieldMod><Cap>50</Cap></Row>
+--        <Row><EffectType>EFFECT_CSUA_VANCOUVER_ALLY</EffectType><YieldType>YIELD_TOURISM</YieldType><YieldMod>100</YieldMod><Cap>50</Cap></Row>
+--   </CityStateUAEffect_HappinessYieldModifiers>
+-- CSUA.sql 挂接：
+--   UPDATE MinorCivilizations SET UAType = 'CSUA_VANCOUVER' WHERE Type = 'MINOR_CIV_VANCOUVER';
+-- 底层逻辑：
+--   * CoastalCityHappiness（基点）在 CvPlayer::GetHappinessFromMinorCivs 中累加：iHappiness += GetNumCoastalCities() x 值/100（计入"来自城邦"快乐）
+--   * CityStateUAEffect_HappinessYieldModifiers 在 CvPlayer::GetCSUAYieldPercentModifier 中计算：
+--       base = max(GetHappiness(), 0)（含本UA给的沿海城市快乐，协同放大，被 Cap 封顶）
+--       每产出% = min(base x YieldMod/100, Cap)，再经逐城产出模板（CvCity::getBaseYieldRateModifier）应用
+--   * 快乐在净快乐 GetHappiness() 中含沿海城市快乐 => 两块效果自然协同（沿海越多→快乐越多→食物/魅力%越高，上限50%封死）
 
 -- ============================ 梵蒂冈 CSUA 实现示例（V11）============================
 -- CSUA.xml 效果定义：

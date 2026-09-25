@@ -63,6 +63,7 @@ CREATE TABLE "Units" (
 	"HurryMultiplier"	integer DEFAULT 0,--秒建筑时每人口额外提供的产能
 	"BaseGold"	integer DEFAULT 0,--大商进行贸易任务的基础金币
 	"NumGoldPerEra"	integer DEFAULT 0,--大商贸易任务每个时代额外增加的金币
+	"NumInfluencePerEra"	integer DEFAULT 0,--大商贸易任务每个时代额外增加的影响力（与NumGoldPerEra同源，作用于贸易任务获得的影响力）
 	"SpreadReligion"	boolean DEFAULT 0,--允许传播宗教（可能会导致IGE看不到单位）
 	"RemoveHeresy"	boolean DEFAULT 0,--允许像异端审判官一样移除异教
 	"ReligionSpreads"	integer DEFAULT 0,--传教次数（可能会导致IGE看不到单位）
