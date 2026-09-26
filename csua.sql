@@ -50,9 +50,10 @@ CREATE TABLE "CityStateUAEffects" (
 	"UnitProductionModifierPerCity"	integer DEFAULT 0,--每座城市提供单位产能百分比
 	"ManpowerPerCity"	integer DEFAULT 0,--每座城市提供人力
 	"CombatBonusPerTechDifference"	integer DEFAULT 0,--每点科技差提供战斗力加成
-	-- 西顿：海军围城+境外回血
-	"NavalAttackIgnoreBuildingDefense"	integer DEFAULT 0,--海军攻击无视建筑防御百分比
-	"ForeignRegenPercent"	integer DEFAULT 0,--境外回血百分比
+	-- 西顿：攻城无视建筑城防+军事城邦每回合经验
+	"CityAttackIgnoreBuildingDefensePercent"	integer DEFAULT 0,--进攻城市时无视该城市来自建筑的城防百分比（盟友30/朋友15）
+	"MilitaryXPPerTurnModifier"	integer DEFAULT 0,--军事城邦盟友提供的每回合单位经验加成百分比（100=+100%）
+	"MilitaryXPSeaAir"	integer DEFAULT 0,--非0时上述每回合经验对海军和空军域同样生效
 	-- 索菲亚：丘陵城市
 	"HillsCityDamageReduction"	integer DEFAULT 0,--丘陵城市受到的伤害降低百分比
 	"HillsMovementModifier"	integer DEFAULT 0,--丘陵移动力消耗变化百分比
@@ -98,6 +99,8 @@ CREATE TABLE "CityStateUAEffects" (
 	"GoldenAgeThresholdPerPopulation"	integer DEFAULT 0,--每人口提供黄金时代阈值变化（负数为降低，-100=-1/每人口，先于百分比修正应用）
 	-- 温哥华：每座沿海城市提供全局快乐（100=+1快乐/沿海城市；盟友300/朋友100）
 	"CoastalCityHappiness"	integer DEFAULT 0,--每座沿海城市提供全局快乐（100=+1快乐/城，如盟友300=+3/城、朋友100=+1/城）
+	-- 埃里温：每处被市民工作的宗教圣地改良（IMPROVEMENT_HOLY_SITE）提供全局快乐（100=+1快乐/处；盟友300=+3/处）
+	-- 注：这是全局快乐，无本地人口上限，计入"来自城邦"项；"每点识字率→全国产能%"由子表 CityStateUAEffect_LiteracyYieldModifiers 定义（见文件末尾）
 	-- 注：温哥华"每点快乐提升全国食物/魅力产出%"由子表 CityStateUAEffect_HappinessYieldModifiers 定义（见文件末尾）
 	-- 注：以下数组/向量类效果由独立子表（CityStateUAEffect_*）定义，通过 EffectType 关联，见文件末尾
 );
@@ -139,6 +142,9 @@ CREATE TABLE "CityStateUAs" (
 -- CityStateUAEffect_CapitalYieldModifierPerFollowingCity  每座信教城市首都提供产出百分比（100=+1%）
 -- CityStateUAEffect_HolyCityYieldModifierPerFollowingCity 每座信教城市使该宗教圣城提供产出百分比（100=+1%，如 YIELD_TOURISM/100=每城+1%魅力）
 -- CityStateUAEffect_HappinessYieldModifiers  每点玩家净快乐提供产出百分比（YieldMod基点=每点+1%，Cap=此值%上限；如 FOOD/TOURISM 各 100/50 = 每点快乐食物/魅力+1%、单独上限50%）
+-- CityStateUAEffect_LiteracyYieldModifiers   每点识字率（已拥有科技/总科技 x100）提供全国产出百分比（YieldMod基点=每点+1%，盟友 PRODUCTION/100、朋友 PRODUCTION/50）
+-- CityStateUAEffect_BornGreatPersonYieldModifiers 每诞生某单位类伟人提供全国产出百分比（YieldMod基点=每诞生+1%，盟友 UNITCLASS_PROPHET/FAITH/500=每大先知+5%信仰）
+-- CityStateUAEffect_AdjacentImprovementYieldChanges 本地块是改良（ImprovementType 指定受加成改良，留空=任意改良）、邻格改良为 AdjacentImprovementType（且被市民工作）时，本地块+该产出（flat值，如 [空]/圣邻 CULTURE/1=每工作圣地邻近改良+1文化）
 
 -- ============================ 温哥华 CSUA 实现示例（V11）============================
 -- 温哥华设计：盟友每座沿海城市+3全局快乐；盟友每点快乐使全国食物+1%、魅力+1%（各自上限50%）
@@ -183,3 +189,91 @@ CREATE TABLE "CityStateUAs" (
 --   * 上述玩家查询入口：CvPlayer::GetCSUAReligionSpreadSpeedModifier() / GetCSUAPapalRecognitionVotes() / GetCSUAPapalRecognitionAllyVotes() / GetCSUAHolyCityYieldModifierPerFollowingCity()
 --   * 追随文明数缓存：CvPlayer::GetCSUAPapalRecognitionFollowerCount()（含自身）在 doTurn() 中每回合刷新（RefreshPapalRecognitionFollowerCount，参考耶路撒冷圣城数缓存 m_iCachedHolyCityCount），
 --       惰性兜底：首次访问为 -1 时即时重算；GetPapalRecognitionVotes 直接读该缓存，避免对每个会员重复全图遍历
+
+-- ============================ 伊费 CSUA 实现示例（V11）============================
+-- 三张新接口表：
+--   (1) CityStateUAEffect_FaithGPClassCostModifier  REFF：按 UnitClassType 限定"信仰购伟人最终价折扣"
+--       EffectType, UnitClassType, CostRiseModifier（最终价格百分比修正，负值=折扣，上限 -90%）
+--   (2) CityStateUAEffect_GreatWorkYieldModifiers   按 GreatWorkClassType 分辨，"每件该类杰作/文物全国X%产出"
+--       EffectType, GreatWorkClassType, YieldType, YieldMod（基点，100=+1%/件）
+--   (3) CityStateUAEffect_GoldenAgeYieldModifiers   黄金时代进行中，"全国X%产出"
+--       EffectType, YieldType, YieldMod（基点，100=+1%，2500=+25%）
+-- CSUA.xml 效果定义：
+--   <Row><Type>EFFECT_CSUA_IFE_ALLY</Type><Help>...</Help></Row>
+--   <Row><Type>EFFECT_CSUA_IFE_FRIEND</Type><Help>...</Help></Row>
+--   <CityStateUAEffect_FaithGPClassCostModifier>   <!-- 盟友 -30 / 朋友 -10，仅 ARTIST/WRITER/MUSICIAN -->
+--        <Row><EffectType>EFFECT_CSUA_IFE_ALLY</EffectType><UnitClassType>UNITCLASS_ARTIST</UnitClassType><CostRiseModifier>-30</CostRiseModifier></Row>
+--        <Row><EffectType>EFFECT_CSUA_IFE_FRIEND</EffectType><UnitClassType>UNITCLASS_MUSICIAN</UnitClassType><CostRiseModifier>-10</CostRiseModifier></Row>
+--   </CityStateUAEffect_FaithGPClassCostModifier>
+--   <CityStateUAEffect_GreatWorkYieldModifiers>     <!-- 盟友：杰作+文物各 +200基点(=+2%/件) 全国信仰 -->
+--        <Row><EffectType>EFFECT_CSUA_IFE_ALLY</EffectType><GreatWorkClassType>GREAT_WORK_ART</GreatWorkClassType><YieldType>YIELD_FAITH</YieldType><YieldMod>200</YieldMod></Row>
+--   </CityStateUAEffect_GreatWorkYieldModifiers>
+--   <CityStateUAEffect_GoldenAgeYieldModifiers>     <!-- 盟友：黄金时代内全国 +25% 信仰（直接填百分比，非基点） -->
+--        <Row><EffectType>EFFECT_CSUA_IFE_ALLY</EffectType><YieldType>YIELD_FAITH</YieldType><YieldMod>25</YieldMod></Row>
+--   </CityStateUAEffect_GoldenAgeYieldModifiers>
+-- CSUA.sql 挂接：
+--   UPDATE MinorCivilizations SET UAType = 'CSUA_IFE' WHERE Type = 'MINOR_CIV_IFE';  -- MINOR_CIV_IFE 已在游戏本体定义
+-- 底层逻辑：
+--   * FaithGPClassCostModifier 在 CvCity::GetFaithPurchaseCost 中，对"当前购买单位的 UnitClass"查该折扣：
+--       - 大伟人分支（SPECIALUNIT_PEOPLE，如艺术家/文学家/音乐家）：复用函数内已取的 eUnitClass，
+--         放在佛罗伦萨"成本上升增量修正"块**之后、最后执行**
+--       - 普通单位分支（// ALL OTHERS，如传教士/审判官/战斗单位）：用 pkUnitInfo->GetUnitClassType() 查
+--         该分支所有其它修正（基础价/时代乘子/政策/降速等）结算后作为最终价格修正
+--       两者都直接作用于最终价：iCost = iCost * (100 + iIfeClassMod) / 100（-30 => 七折）。
+--       因为是最终价修正且最后执行，时代涨幅/政策/佛罗伦萨修正越多，伊费这七折抵扣的绝对值越大；
+--       且绑定任意 UnitClass（伟人或普通单位）都能生效，便于后续调整 UA 时复用此表
+--   * GreatWorkYieldModifiers 在 CvPlayer::GetCSUAYieldPercentModifier 中：遍历 entry、匹配 eYield 后，
+--       用 CvPlayerCityStateUA::GetCachedGreatWorkCount((GreatWorkClass)) 读到的"每回合缓存杰作数" x 基点累加，
+--       最终 /100 归一为产出百分比。缓存由 CvPlayerCityStateUA::CacheGreatWorkCounts() 每 doTurn（RefreshCSAllUAEffects
+--       内、entries 重建后）对玩家所有城市按该类 GetNumGreatWorks 计件一次填平 m_aiCachedGreatWorkCount；
+--       热路径不再逐城市实时累加，只读缓存 int。
+--   * GoldenAgeYieldModifiers 在 CvPlayer::GetCSUAYieldPercentModifier 中：if (getGoldenAgeTurns() > 0) 叠加该产出%。
+--       填值按普通百分比（25 = +25%），累加进 iMod 前 ×100 转为基点（因该方法末尾 /100 归一）。
+--   * 三者均经 RefreshCSAllUAEffects 每回合从零重算，无需序列化、无需 bump MOD_DLL_VERSION_NUMBER（旧档自动兼容）
+
+-- ============================ 埃里温 CSUA 实现示例（V11）============================
+-- 埃里温（文化型，MINOR_CIV_YEREVAN）设计：
+--   盟友：每点识字率→全国产能+1%；每处被市民工作的宗教圣地→全局快乐+3 且邻近改良+1文化；每诞生大先知→全国信仰+5%
+--   朋友：每2点识字率→全国产能+1%（即每点+0.5%）
+-- 识字率 = 已拥有科技数 ÷ 科技总数 x 100（百分点整数），原版科技计数，无需新玩法体系。
+-- 三张新接口表：
+--   (1) CityStateUAEffect_LiteracyYieldModifiers   每点识字率→全国X%产出（可按 YieldType 换任意产出）
+--   (2) CityStateUAEffect_BornGreatPersonYieldModifiers 每诞生某 UnitClassType 伟人→全国X%产出（可按 UnitClassType/YieldType/YieldMod 自由配置）
+--   (3) CityStateUAEffect_AdjacentImprovementYieldChanges 本地块是改良（ImprovementType 必须为具体改良类型，严格匹配，无通配）、
+--        邻格改良为 AdjacentImprovementType → 本地块+Yield of YieldType。
+--        参考 SP_AdjacentImprovementYieldChangesForNewImproments：用 INSERT...SELECT FROM Improvements 全量枚举每个改良
+--        生成一行，并建 AFTER INSERT ON Improvements 触发器覆盖未来新增改良（对齐 NewSpecialistRule.sql 手法）
+-- 主表新列：
+--   HolySiteHappiness（基点）：每处被工作的宗教圣地→全局快乐（无人口上限，计入"来自城邦"项）
+-- CSUA.xml 效果定义：
+--   <Row><Type>EFFECT_CSUA_YEREVAN_ALLY</Type><HolySiteHappiness>300</HolySiteHappiness></Row>
+--   <Row><Type>EFFECT_CSUA_YEREVAN_FRIEND</Type></Row>   <!-- 朋友无快乐/信仰 -->
+--   <CityStateUAEffect_LiteracyYieldModifiers>
+--        <Row><EffectType>EFFECT_CSUA_YEREVAN_ALLY</EffectType><YieldType>YIELD_PRODUCTION</YieldType><YieldMod>100</YieldMod></Row>
+--        <Row><EffectType>EFFECT_CSUA_YEREVAN_FRIEND</EffectType><YieldType>YIELD_PRODUCTION</YieldType><YieldMod>50</YieldMod></Row>
+--   </CityStateUAEffect_LiteracyYieldModifiers>
+--   <CityStateUAEffect_BornGreatPersonYieldModifiers>
+--        <Row><EffectType>EFFECT_CSUA_YEREVAN_ALLY</EffectType><UnitClassType>UNITCLASS_PROPHET</UnitClassType><YieldType>YIELD_FAITH</YieldType><YieldMod>500</YieldMod></Row>
+--   </CityStateUAEffect_BornGreatPersonYieldModifiers>
+--   （不在 XML 手写该段，改由 CSUA.sql 的 INSERT...SELECT FROM Improvements + AFTER INSERT 触发器全量枚举，见上方挂接示例）
+-- CSUA.sql 挂接（含枚举+触发器，替代在 CSUA.xml 手写单行）：
+--   UPDATE MinorCivilizations SET UAType = 'CSUA_YEREVAN' WHERE Type = 'MINOR_CIV_YEREVAN';
+--   INSERT INTO CityStateUAEffect_AdjacentImprovementYieldChanges(EffectType,ImprovementType,AdjacentImprovementType,YieldType,Yield)
+--   SELECT 'EFFECT_CSUA_YEREVAN_ALLY', Type, 'IMPROVEMENT_HOLY_SITE', 'YIELD_CULTURE', 1 FROM Improvements;
+--   CREATE TRIGGER IF NOT EXISTS SP_CSUA_YerevanAdjacentForNewImprovements AFTER INSERT ON Improvements ... (自动为 New.Type 补行)
+-- 底层逻辑：
+--   * HolySiteHappiness 在 CvPlayer::GetHappinessFromMinorCivs 中累加（计入"来自城邦"全局快乐）：
+--       iHappiness += GetCachedWorkedHolySites() x 值/100。GetCachedWorkedHolySites 为每回合缓存的玩家所有城市
+--       GetNumImprovementWorked(IMPROVEMENT_HOLY_SITE) 总数（RefreshCSAllUAEffects 内 CacheWorkedHolySites 每 doTurn 刷新一次）。
+--       注意这是全局快乐，不受本地人口上限约束——与桑给巴尔的 CityStateUAEffect_ImprovementHappiness（本地快乐）不同。
+--   * LiteracyYieldModifiers 在 CvPlayer::GetCSUAYieldPercentModifier 中：遍历 entry、匹配 eYield 后，
+--       iMod += GetCachedLiteracyPercent() x YieldMod。GetCachedLiteracyPercent 由 ComputeLiteracyPercent 每 doTurn 遍历 HasTech 算一次。
+--   * BornGreatPersonYieldModifiers 在 CvPlayer::GetCSUAYieldPercentModifier 中：匹配 eYield 后，
+--       iMod += GetBornGreatPersonCount(GetGreatPersonFromUnitClass(UnitClass)) x YieldMod（大先知诞生是累计计数，O(1)读取）。
+--   * AdjacentImprovementYieldChanges 在 CvPlot::calculateImprovementYieldChange 的邻格循环中：对每个属于该玩家的邻格改良，
+--       iYield += GetCSUAAdjacentImprovementYieldChange(本地改良, 邻格改良, eYield)（flat值）。本地改良 ImprovementType 严格匹配
+--       （无通配禁用），由 SP SQL 全量枚举每个改良+触发器补行；不要求邻格“被工作”，与 Policy/Trait/Building 相邻改良系列一致；
+--       本地块本身需被工作才会显示产出，故加成都落在被工作格上。
+--   * 识字率 = 已拥有科技数/总科技数，随研究推进动态变化（每回合缓存，非离线累积）。
+--   * 三者在 GetCSUAYieldPercentModifier 末尾 /100 归一；均经 RefreshCSAllUAEffects 每回合从零重算，
+--     新增成员均为 DB 派生 + 每回合内存缓存，无需序列化、无需 bump MOD_DLL_VERSION_NUMBER（旧档自动兼容）
