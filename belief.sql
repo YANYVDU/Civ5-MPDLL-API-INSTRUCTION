@@ -47,6 +47,7 @@ CREATE TABLE "Beliefs" (
 	"GreatPersonExpendedFaith"	integer DEFAULT 0,--消耗伟人时获得的信仰值
 	"CityStateMinimumInfluence"	integer DEFAULT 0,--对信仰该宗教的城邦最低影响力值
 	"CityStateInfluenceModifier"	integer DEFAULT 0,--对信仰该宗教城邦的影响力变化百分比
+	"DiplomaticPrestige"	integer DEFAULT 0,--选取此信条时，选取者一次性获得的外交威望（非每回合，仅入手当次）
 	"OtherReligionPressureErosion"	integer DEFAULT 0,--消解异教宗教压力的比例
 	"SpyPressure"	integer DEFAULT 0,--间谍在敌方城市提供宗教压力的数值
 	"InquisitorPressureRetention"	integer DEFAULT 0,--被大先知和异端审判官传教时原有宗教压力保留比例
