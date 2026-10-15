@@ -169,6 +169,7 @@ CREATE TABLE "Policies" (
 	"InstantFoodKeptPercent"	integer NOT NULL DEFAULT 0,--政策启用时设置城市保底食物为增长阈值的x%
 	"FreeBuildingClass"	text DEFAULT NULL,--全国赠送指定级别的建筑（引用BuildingClasses表）
 	"ExtraSpies"	integer DEFAULT 0,--额外间谍数量
+	"SpyPoints"	integer DEFAULT 0,--本政策启用时每回合为玩家提供的间谍点数（与MPDLL Policies.SpyPoints对应）
 	"DefenseBoostAllCities"	integer DEFAULT 0,--所有城市防御力增加固定点数
 	"AlwaysWeLoveKindDayInGoldenAge"	boolean DEFAULT 0,--黄金时代期间所有城市永久处于"国王爱戴日"状态
 	"MinorLocalBullyScoreModifier"	integer DEFAULT 0,--全局军事分数对本方的影响力影响修正

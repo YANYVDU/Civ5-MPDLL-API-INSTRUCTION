@@ -103,6 +103,7 @@ CREATE TABLE "Buildings" (
 	"EspionageModifier"	integer DEFAULT 0,--本城敌国间谍活动效率变化
 	"GlobalEspionageModifier"	integer DEFAULT 0,--全国敌国间谍活动效率变化
 	"ExtraSpies"	integer DEFAULT 0,--额外间谍数量
+	"SpyPoints"	integer DEFAULT 0,--本建筑每回合为城市所属玩家提供的间谍点数（与MPDLL Buildings.SpyPoints对应）
 	"SpyRankChange"	integer DEFAULT 0,--新间谍等级变化？
 	"InstantSpyRankChange"	integer DEFAULT 0,----已有间谍等级变化
 	"TradeRouteRecipientBonus"	integer DEFAULT 0,--商路发出者奖金

@@ -56,6 +56,7 @@ CREATE TABLE "Beliefs" (
 	"SpreadModifierDoublingTech"	text DEFAULT NULL,--研发某科技后传播速度翻倍
 	-- 以下为SP 2.0新增列 --
 	"ExtraSpies"	integer DEFAULT 0,--额外间谍数量
+	"SpyPoints"	integer DEFAULT 0,--宗教创立者每回合获得的间谍点数（仅对创立者本人生效，与该宗教全部信条累加；不随城市传播转移给其它玩家）
 	"CuttingBonusModifier"	integer DEFAULT 0,--砍伐森林/清理地貌奖励变化百分比
 	"LandmarksTourismPercent"	integer DEFAULT 0,--地块文化产出转化为魅力的百分比
 	"AllowYieldPerBirth"	boolean DEFAULT 0,--产生大先知时允许获得一次性产出（配合Belief_YieldPerBirth定义产出类型）
@@ -75,6 +76,7 @@ CREATE TABLE "Beliefs" (
 	"CityCorruptionScoreChange"	integer DEFAULT 0,--信仰该宗教的城市腐败分数变化值（正值增加腐败，负值减少腐败）
 	"FirstConversionCitiesPerGoldenAge"	integer DEFAULT 0,--每X座城市首次皈依该宗教时创立者开启一次黄金时代（X为此阈值，与FirstConversionCitiesPerPop共用计数器）
 	"FirstConversionCitiesPerPop"	integer DEFAULT 0,--每X座城市首次皈依该宗教时圣城增长1人口（X为此值）
+	"SpyPointsPerCity"	integer DEFAULT 0,--每座以该宗教为主流信仰的城市每回合为其所属玩家增加的间谍点数（与信条伟人点数机制一致：按城市主流宗教的全部信条累加，神系信条另按城市第二神系判定；不要求城市所属玩家是宗教创立者；与SpyPoints不同，收益归城市拥有者而非创立者）
 	FOREIGN KEY("ObsoleteEra") REFERENCES "Eras"("Type"),
 	FOREIGN KEY("ResourceRevealed") REFERENCES "Resources"("Type"),
 	FOREIGN KEY("SpreadModifierDoublingTech") REFERENCES "Technologies"("Type"),

@@ -62,6 +62,7 @@ CREATE TABLE "Traits" (
 	"DOFGreatPersonModifier"	integer DEFAULT 0,--声明友谊后双方伟人产生速率加成百分比（瑞典10）
 	"LuxuryHappinessRetention"	integer DEFAULT 0,--即使奢侈资源全部交易出去，仍可保留的快乐值比例（荷兰50表示保留50%）
 	"ExtraSpies"	integer DEFAULT 0,--额外间谍数量（英国1）
+	"SpyPoints"	integer DEFAULT 0,--本特质生效时每回合为玩家提供的间谍点数（与MPDLL Traits.SpyPoints对应）
 	"UnresearchedTechBonusFromKills"	integer DEFAULT 0,--击杀单位时获得未研发科技的进度百分比
 	"ExtraFoundedCityTerritoryClaimRange"	integer DEFAULT 0,--建立城市时额外获得的领土格数（肖肖尼8）
 	"FreeSocialPoliciesPerEra"	integer DEFAULT 0,--每个新时代开始时赠送的免费政策数量（波兰1，⚠ 无MOD_BUGFIX_MINOR时值>0仅送1个政策）
