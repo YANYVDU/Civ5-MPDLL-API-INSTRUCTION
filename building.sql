@@ -1218,3 +1218,22 @@ CREATE TABLE "CityStateUAEffect_UnitBornYield" (
 	"YieldType"	text REFERENCES Yields(Type),--yield type, freely configurable (YIELD_GOLD / YIELD_CULTURE / YIELD_FAITH / YIELD_GOLDEN_AGE_POINTS / YIELD_SCIENCE / YIELD_TOURISM)
 	"YieldMod"	integer DEFAULT 0--granted yield = influence * YieldMod% (100 = full influence)
 );
+
+--建筑研发科技后自动升级（科技 -> 旧建筑类 -> 新建筑类）
+--以建筑类（BuildingClass）而非建筑类型描述，自动覆盖文明专属替代建筑（UB）
+--每个 UpgradeGroup 在每座城市内最多补一次新建筑；城市同时拥有多个 OldBuildingClass 时全部升级，
+--通知按 SPriority 从小到大列出全部旧建筑
+--同一 UpgradeGroup 的 NewBuildingClass 必须相同（数据约定，代码不校验）
+--人类玩家总是享受升级；AI 玩家是否升级由 HandicapInfos.AIAutoBuildingUpgrade 控制（当前仅神级开启）
+--旧建筑不会被移除：基础建筑由 Buildings.ObsoleteTech 失效；没有 ObsoleteTech 的 UB 会继续生效，
+--这是 UB 强度的一部分，不视为重复收益
+--挂载点：CvTeam::setHasTech 内、processTech 之前（获得科技时，每队每科技执行一次；
+--先补建筑，再让 processTech 处理同科技的建筑增强/过时）
+CREATE TABLE "Building_AutoUpgrade" (
+	"TechType"	text NOT NULL REFERENCES Technologies(Type),--触发科技，如 TECH_INDUSTRIALIZATION
+	"UpgradeGroup"	text NOT NULL,--逻辑分组名，仅用于归组与通知
+	"OldBuildingClass"	text NOT NULL REFERENCES BuildingClasses(Type),--旧建筑类
+	"NewBuildingClass"	text NOT NULL REFERENCES BuildingClasses(Type),--升级后的建筑类，按玩家所在文明的实际建筑添加
+	"SPriority"	integer NOT NULL DEFAULT 0,--越小越优先
+	PRIMARY KEY (TechType, UpgradeGroup, OldBuildingClass)
+);
