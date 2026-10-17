@@ -137,6 +137,9 @@ CREATE TABLE "Units" (
 	"BarbarianTraitTechObsolete"	boolean DEFAULT 0,--蛮族UA随科技过时
 	"MaxHitPoints"	INTEGER DEFAULT 100,--最大生命值（默认100）
 	"NoSupply"	INTEGER DEFAULT 0,--不需要补给上限
+	-- V11：购买城邦（威尼斯商人）时永久保留被购买城邦的城邦独特能力
+	"GainAllyCityStateUAOnBuy"	boolean DEFAULT 0,--购买城邦时永久获得该城邦的盟友级独特能力
+	"GainFriendCityStateUAOnBuy"	boolean DEFAULT 0,--购买城邦时永久获得该城邦的朋友级独特能力
 	FOREIGN KEY("Description") REFERENCES "Language_en_US"("Tag"),
 	FOREIGN KEY("Civilopedia") REFERENCES "Language_en_US"("Tag"),
 	FOREIGN KEY("Strategy") REFERENCES "Language_en_US"("Tag"),

@@ -178,6 +178,7 @@ CREATE TABLE "Traits" (
 	"NoSpecialistFood"	boolean DEFAULT 0,--专家不消耗食物（SP新增，与"专家食物消耗减半"政策互斥，特性优先）
 	"NoSpecialistUnhappiness"	boolean DEFAULT 0,--专家不产生任何不满（SP新增，与"专家不满减半"政策互斥，特性优先）
 	"GainConqueredCityStateUA"	boolean DEFAULT 0,--征服城邦的原始首都后永久获得该城邦的盟友级独特能力（CSUA）：一经征服即持久记录，与城市后续归属、城邦是否存活、当前外交关系均无关；判定基于原始首都坐标，和平割让与和平买断（奥地利/威尼斯）不触发（SP新增）
+	"GainAnnexedCityStateUA"	boolean DEFAULT 0,--金币买断吞并城邦后永久获得该城邦的盟友级独特能力（CSUA）：由奥地利UA（外交联姻）使用，在CvMinorCivAI::DoBuyout中记录（与威尼斯商人的买断共用同一份永久记录）；额外的援建点数成本由CustomModOption SP_AID_POINT_COST_ANNEX_CITY_STATE控制（SP新增）
 	FOREIGN KEY("Description") REFERENCES "Language_en_US"("Tag"),
 	FOREIGN KEY("ShortDescription") REFERENCES "Language_en_US"("Tag"),
 	FOREIGN KEY("FreeUnit") REFERENCES "UnitClasses"("Type"),
