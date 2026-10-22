@@ -373,6 +373,8 @@ CREATE TABLE "UnitPromotions" (
 	"FixReducePerPromotionMod"	integer DEFAULT 0,--每拥有一个晋升，减少受到伤害的固定值（最终减伤=晋升数×该值/100）。攻击时减少敌方反击伤害，防御时减少敌方攻击伤害
 	"ShowInFlag"	INTEGER DEFAULT -1,--是否在单位旗帜上显示此晋升图标（⚠ 仅Super Power模组UI层使用，DLL无此逻辑，-1=不显示）
 	"IconStringSP"	text DEFAULT '[ICON_PROMOTION_ATTRIBUTES]',--晋升属性图标字符串
+	-- 以下为平民扩张单位通行拦截新增列 --
+	"IrregularForce"	INTEGER DEFAULT 0,--非正规军：拥有此晋升的单位不会阻挡他国扩张单位通行（仅对军事单位有意义）
 	PRIMARY KEY("ID" AUTOINCREMENT),
 	FOREIGN KEY("AttackChanceFromAttackDamage") REFERENCES "LuaFormula"("Type"),
 	FOREIGN KEY("AuraPromotionType") REFERENCES "UnitPromotions"("Type"),
