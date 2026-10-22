@@ -1067,6 +1067,12 @@ CREATE TABLE "Building_DomainEnemyCombatModifierGlobal" (
 	"DomainType"	text NOT NULL REFERENCES Domains(Type),--敌方单位域类型
 	"Modifier"	integer DEFAULT 0--战斗力修正百分比
 );
+--建筑使境内（城邦文化边界内）指定领域的敌方单位按城邦国库现金动态削减战斗力（每100金币削减Modifier%，不封顶，与其他加成加算叠加）
+CREATE TABLE "Building_DomainEnemyCombatModifierPerGold" (
+	"BuildingType"	text NOT NULL REFERENCES Buildings(Type),--建筑Type（城邦宫殿=BUILDING_CITYSTATE_RESOURCE）
+	"DomainType"	text NOT NULL REFERENCES Domains(Type),--敌方单位域类型（DOMAIN_LAND/SEA/AIR）
+	"Modifier"	integer DEFAULT 0--每100现金的战斗力削减百分比（负值，-10=每100金币削减10%）
+);
 --建筑对友方特定域单位在本城境内的战斗力修正
 CREATE TABLE "Building_DomainFriendsCombatModifierLocal" (
 	"BuildingType"	text NOT NULL REFERENCES Buildings(Type),--建筑Type
