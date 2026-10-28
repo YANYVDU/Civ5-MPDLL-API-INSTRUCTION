@@ -371,6 +371,8 @@ CREATE TABLE "UnitPromotions" (
 	"OriginalCapitalSpecialDamageFix"	integer DEFAULT 0,--每个占领的原始首都对陆地单位带来的额外固定伤害（对非陆地单位效果减半）
 	"FixDamagePerPromotionMod"	integer DEFAULT 0,--每拥有一个晋升，攻击/防御时额外造成的固定伤害值（最终伤害=晋升数×该值/100）。攻击方计算攻击伤害，防御方计算防御伤害（对城市无效）
 	"FixReducePerPromotionMod"	integer DEFAULT 0,--每拥有一个晋升，减少受到伤害的固定值（最终减伤=晋升数×该值/100）。攻击时减少敌方反击伤害，防御时减少敌方攻击伤害
+	"MeleeAttackCityReduceDamage"	integer DEFAULT 0,--近战攻击城市时，攻击者自身受到的伤害降低的百分比（100 及以上=免疫反击伤害；Hanoi 城邦 UA 的战场固定伤害缩放优先于此效果）
+	"MeleeAttackUnitReduceDamage"	integer DEFAULT 0,--近战攻击单位时，攻击者自身受到的伤害降低的百分比（100 及以上=免疫反击伤害；Hanoi 城邦 UA 的战场固定伤害缩放优先于此效果）
 	"ShowInFlag"	INTEGER DEFAULT -1,--是否在单位旗帜上显示此晋升图标（⚠ 仅Super Power模组UI层使用，DLL无此逻辑，-1=不显示）
 	"IconStringSP"	text DEFAULT '[ICON_PROMOTION_ATTRIBUTES]',--晋升属性图标字符串
 	-- 以下为平民扩张单位通行拦截新增列 --
