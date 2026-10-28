@@ -486,7 +486,8 @@ CREATE TABLE "Policy_Flavors" (
 	FOREIGN KEY("FlavorType") REFERENCES "Flavors"("Type")
 );
 
---政策在所有城市赠送免费建筑
+--政策在所有城市赠送免费建筑（写入免费建筑槽：不耗战略资源、不计世界/国家奇观数、不收维护费；
+--同一建筑类不要与奇观/特性/建筑/原版 FreeBuildingClass 等其它免费建筑来源共用，共享计数无法完全区分来源）
 CREATE TABLE "Policy_FreeBuildingClass" (
 	"PolicyType"	text,--政策Type
 	"BuildingClassType"	text,--免费获得的建筑类Type
@@ -505,7 +506,7 @@ CREATE TABLE "Policy_FreeBuildingClassCapital" (
 	FOREIGN KEY("BuildingClassType") REFERENCES "BuildingClasses"("Type")
 );
 
---政策对每个城邦盟友赠送免费建筑
+--政策在城市原始拥有者为城邦时赠送免费建筑（按 getOriginalOwner 判定，与旧 Lua 实现一致；封锁政策分支时移除）
 CREATE TABLE "Policy_FreeBuildingClassCityStates" (
 	"PolicyType"	text,--政策Type
 	"BuildingClassType"	text,--免费获得的建筑类Type
