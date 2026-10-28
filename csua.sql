@@ -277,3 +277,42 @@ CREATE TABLE "CityStateUAs" (
 --   * 识字率 = 已拥有科技数/总科技数，随研究推进动态变化（每回合缓存，非离线累积）。
 --   * 三者在 GetCSUAYieldPercentModifier 末尾 /100 归一；均经 RefreshCSAllUAEffects 每回合从零重算，
 --     新增成员均为 DB 派生 + 每回合内存缓存，无需序列化、无需 bump MOD_DLL_VERSION_NUMBER（旧档自动兼容）
+
+-- ============================ CityStateUA_ExtraFlavors（AI 性格倾向表）============================
+-- 让 AI 按领袖性格（Flavor）偏好某城邦的独特能力，即 AI“想要”什么样的城邦。
+-- 计算方式与 Belief_ExtraFlavors 相同：得分 += Flavor × 领袖对应 Flavor / 100。
+-- 得分同时用于两处：城邦外交态度（友好/保护/征服/欺凌权重）与黄金赠礼意愿（阈值 100）。
+-- 数值参考：25 约等于“领袖该 Flavor 为 6 时 +1.5 分”；若要产生明显偏好，建议写 300~2000。
+-- 注意：数值可正可负；负数表示该性格的领袖反而排斥这类城邦。
+CREATE TABLE "CityStateUA_ExtraFlavors" (
+    "CityStateUAType" text references CityStateUAs(Type), -- CSUA 类型（对应 CityStateUAs.Type）
+    "FlavorType" text references Flavors(Type), -- AI 性格倾向类型（如 FLAVOR_SCIENCE、FLAVOR_CULTURE）
+    "Flavor" integer default 0 not null -- 倾向权重，正数=吸引，负数=排斥
+);
+
+-- ============================ CityStateUA_VictoryFlavors（AI 胜利倾向表）============================
+-- 让 AI 在追求某种胜利时额外偏好拥有特定 UA 的城邦，即 AI“需要”什么样的城邦。
+-- 键使用 AIGrandStrategies（数据库中实际存在的 4 行），与 AI 的胜利追求一一对应：
+--   AIGRANDSTRATEGY_CULTURE        → 文化胜利
+--   AIGRANDSTRATEGY_UNITED_NATIONS → 外交胜利
+--   AIGRANDSTRATEGY_SPACESHIP      → 科技胜利
+--   AIGRANDSTRATEGY_CONQUEST       → 征服胜利
+-- Flavor 直接加到黄金赠礼评分（赠礼阈值 100），建议 20~150；负数表示该胜利下反而排斥。
+CREATE TABLE "CityStateUA_VictoryFlavors" (
+    "CityStateUAType" text references CityStateUAs(Type), -- CSUA 类型（对应 CityStateUAs.Type）
+    "AIGrandStrategyType" text references AIGrandStrategies(Type), -- AI 当前追求的大战略（对应四类胜利）
+    "Flavor" integer default 0 not null -- 额外偏好分值（黄金赠礼评分尺度，阈值 100）
+);
+
+-- 底层逻辑：
+--   * 两张表在 CvCityStateUAEntry::CacheResults 中随 CityStateUAs 一起加载：
+--       GetExtraFlavorValue(FlavorTypes) 与 GetVictoryFlavorValue(AIGrandStrategyTypes)。
+--   * 统一打分函数 CvDiplomacyAI::GetCSUAAIDesirability(eMinor)：
+--       性格分 = Σ(CityStateUA_ExtraFlavors.Flavor × 领袖 Flavor) / 100
+--       胜利分 = CityStateUA_VictoryFlavors 中当前 GetActiveGrandStrategy() 对应行的 Flavor
+--     两者相加后返回，量纲与黄金赠礼评分一致（阈值 100）。
+--   * 接入点一：CvDiplomacyAI::GetBestApproachTowardsMinorCiv，将该分值 /10 加到友好权重、
+--     /20 加到保护权重，并从征服/欺凌权重中扣减，影响 AI 是否愿意结交该城邦。
+--   * 接入点二：CvDiplomacyAI::DoMinorCivGoldGift，分值直接加到送礼 iValue；
+--     同时当该分值本身 >= 赠礼阈值时，即使已是朋友也会继续投资以争取升为盟友。
+--   * 表为空或城邦无 UAType 时返回 0，完全不影响原版 AI 行为。
