@@ -102,6 +102,10 @@ CREATE TABLE "CityStateUAEffects" (
 	-- 埃里温：每处被市民工作的宗教圣地改良（IMPROVEMENT_HOLY_SITE）提供全局快乐（100=+1快乐/处；盟友300=+3/处）
 	-- 注：这是全局快乐，无本地人口上限，计入"来自城邦"项；"每点识字率→全国产能%"由子表 CityStateUAEffect_LiteracyYieldModifiers 定义（见文件末尾）
 	-- 注：温哥华"每点快乐提升全国食物/魅力产出%"由子表 CityStateUAEffect_HappinessYieldModifiers 定义（见文件末尾）
+	-- 维滕贝格：审判官相关（信仰购买信条、审判保留信众、审判官可用于城邦城市）
+	"FaithBeliefPurchase"	boolean DEFAULT 0,--盟友可花费高额信仰为其领导的宗教购买1个自选信条（每盟友限1次）
+	"InquisitorRetentionPercent"	integer DEFAULT 0,--该宗教被审判官/大先知清除时保留的信众百分比（40=保留40%）
+	"InquisitorCanUseOnCityState"	boolean DEFAULT 0,--盟友的审判官可对任意城邦城市执行审判（非盟友对城邦城市不可用）
 	-- 注：以下数组/向量类效果由独立子表（CityStateUAEffect_*）定义，通过 EffectType 关联，见文件末尾
 );
 
