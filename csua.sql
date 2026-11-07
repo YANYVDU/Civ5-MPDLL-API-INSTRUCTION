@@ -90,8 +90,10 @@ CREATE TABLE "CityStateUAEffects" (
 	"UnhappinessReductionPerCrossContinentRoute"	integer DEFAULT 0,--每条跨洲商路降低人口不满百分比（100=每1条+100%，上限90）
 	-- 瓦莱塔：被围城城市不能回血
 	"EnemyCityNoHealBesiegeCount"	integer DEFAULT 0,--被我方至少此数量战斗单位围困的敌方城市无法回血
-	-- 布拉格：击杀间谍获得间谍进度
+	-- 布拉格：击杀间谍获得间谍进度（独立功能，与下方点数接口互不影响，可同时配置生效）
 	"SpyKillGainSpyProgress"	integer DEFAULT 0,--击杀敌方间谍获得新间谍进度（100=杀1得1，20=杀5得1）
+	-- 布拉格：击杀间谍获得间谍点数（独立功能，与上方进度接口互不影响，可同时配置生效）
+	"SpyKillGainSpyPoints"	integer DEFAULT 0,--击杀敌方间谍获得的间谍点数数量（直接加到间谍点数池，50=杀1得50点；基础阈值100点招募1名间谍，阈值随获得数递增）
 	-- 塔那那利佛：沿海城市食物增长门槛+每城外交威望
 	"CoastalCityGrowthThresholdModifier"	integer DEFAULT 0,--沿海城市食物增长门槛变化百分比（-20=-20%）
 	"DiplomaticPrestigePerCity"	integer DEFAULT 0,--每座城市提供外交威望（100=0.1威望/城）
